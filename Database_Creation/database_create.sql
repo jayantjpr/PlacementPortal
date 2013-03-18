@@ -12,7 +12,7 @@
 --
 ---------------------------------------------------------------------------
 CREATE TABLE Country(
-	Country_Code SMALLINT PRIMARY KEY,
+	Country_Code SMALLINT PRIMARY KEY ,
 	Country_Name VARCHAR(30) NOT NULL
 );
 
@@ -52,10 +52,10 @@ CREATE TABLE Branch(
 
 CREATE TABLE Program(
 	Program_Type _PROG_ NOT NULL DEFAULT 'B.Tech.' ,
-	Branch_Code INT NOT NULL REFERENCES Branch(Branch_Code) NOT NULL,
-	Website_URL VARCHAR(50) UNIQUE NOT NULL,
+	Branch_Code INT NOT NULL REFERENCES Branch(Branch_Code) ON DELETE CASCADE ON UPDATE CASCADE,
+	Website_URL VARCHAR(50) UNIQUE NOT NULL ,
 	Brochure VARCHAR(500),
---	Placement_Sec_Roll_No CHAR(10) REFERENCES Student(Roll_No),
+	Placement_Sec_Roll_No CHAR(10),
 	Faculty_Advisor_Name VARCHAR(50) NOT NULL,
 	Faculty_Advisor_Contact VARCHAR(20) NOT NULL,
 	
@@ -69,14 +69,17 @@ CREATE TABLE Program(
 --
 ---------------------------------------------------------------------------
 
+CREATE TYPE _GENDER_ AS ENUM ('M', 'F');
+CREATE TYPE _CATEGORY_ AS ENUM ('GEN', 'SC', 'ST', 'OBC');
+
 CREATE TABLE Student(
 	Roll_No CHAR(10) PRIMARY KEY,
 	Name VARCHAR(50) NOT NULL,
 	Dob DATE NOT NULL,
-	Gender CHAR(1) NOT NULL,
+	Gender _GENDER_ NOT NULL,
 	Institute_email VARCHAR(50) UNIQUE NOT NULL,
 	Other_email VARCHAR(50) UNIQUE NOT NULL,
-	Category CHAR(3) NOT NULL,
+	Category _CATEGORY_ NOT NULL,
 	JEE_GATE_AIR INT,
 	CurAddr_Room_No VARCHAR(10) NOT NULL,
 	CurAddr_Hostel INT NOT NULL REFERENCES Institute_Location(Location_Id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -90,9 +93,15 @@ CREATE TABLE Student(
 
 	Program_Type _PROG_ NOT NULL,
 	Branch_Code INT NOT NULL,
-     	FOREIGN KEY (Program_Type, Branch_Code) REFERENCES Program(Program_Type, Branch_Code) ON DELETE CASCADE ON UPDATE CASCADE
+     	FOREIGN KEY (Program_Type, Branch_Code) REFERENCES Program(Program_Type, Branch_Code) ON DELETE CASCADE ON UPDATE CASCADE,
+
+	CHECK(Roll_No ~ '^[\d]{7,10}$'),
+	CHECK(Institute_email ~ '^[A-Za-z0-9._%-]+@iitg\.ernet\.in$'),
+	CHECK(Other_email ~ '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
+
 );
 
+ALTER TABLE Program ADD FOREIGN KEY(Placement_Sec_Roll_No) REFERENCES Student(Roll_No) ON UPDATE CASCADE;
 
 CREATE TABLE Photograph(
 	Roll_No CHAR(10) REFERENCES Student(Roll_No) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -105,7 +114,9 @@ CREATE TABLE Student_Contact(
 	Roll_No CHAR(10) REFERENCES Student(Roll_No) ON DELETE CASCADE ON UPDATE CASCADE,
 	Country_Code SMALLINT REFERENCES Country(Country_Code) ON DELETE CASCADE ON UPDATE CASCADE,
 	Telephone VARCHAR(20),
-	PRIMARY KEY (Roll_No, Country_Code, Telephone)
+	PRIMARY KEY (Roll_No, Country_Code, Telephone),
+	
+	CHECK(Telephone ~ '^[\d]+$')
 );
 
 
@@ -131,9 +142,12 @@ CREATE TABLE Academic_Details(
 	Board_Degree VARCHAR(10) NOT NULL,
 	Stream VARCHAR(100) NOT NULL,
 	Institute VARCHAR(100) NOT NULL,
-	Year_of_Passing INT NOT NULL,
+	Year_of_Passing SMALLINT NOT NULL,
+	Cgpa_Per NUMERIC(5, 2) NOT NULL,
 
-	PRIMARY KEY (Roll_No, _Level)
+	PRIMARY KEY (Roll_No, _Level),
+	
+	CHECK(Cgpa_Per <= 100 AND Cgpa_Per >= 0),
 );
 
 
@@ -149,7 +163,16 @@ CREATE TABLE BTech_SPI(
 	Sem6 NUMERIC(4, 2) NOT NULL,
 	Sem7 NUMERIC(4, 2),
 
-	PRIMARY KEY (Roll_No)
+	PRIMARY KEY (Roll_No),
+	
+	CHECK(CPI <= 10 AND CPI >= 0),
+	CHECK(Sem1 <= 10 AND Sem1 >= 0),
+	CHECK(Sem2 <= 10 AND Sem2 >= 0),
+	CHECK(Sem3 <= 10 AND Sem3 >= 0),
+	CHECK(Sem4 <= 10 AND Sem4 >= 0),
+	CHECK(Sem5 <= 10 AND Sem5 >= 0),
+	CHECK(Sem6 <= 10 AND Sem6 >= 0),
+	CHECK((Sem7 IS NULL) OR (Sem7 <= 10 AND Sem7 >= 0))
 );
 
 
@@ -161,7 +184,12 @@ CREATE TABLE Master_SPI(
 	Sem2 NUMERIC(4, 2) NOT NULL,
 	Sem3 NUMERIC(4, 2),
 
-	PRIMARY KEY (Roll_No)
+	PRIMARY KEY (Roll_No),
+	
+	CHECK(CPI <= 10 AND CPI >= 0),
+	CHECK(Sem1 <= 10 AND Sem1 >= 0),
+	CHECK(Sem2 <= 10 AND Sem2 >= 0),
+	CHECK((Sem3 IS NULL) OR (Sem3 <= 10 AND Sem3 >= 0))
 );
 
 
@@ -179,7 +207,18 @@ CREATE TABLE Dual_Degree_SPI(
 	Sem8 NUMERIC(4, 2) NOT NULL,
 	Sem9 NUMERIC(4, 2),
 
-	PRIMARY KEY (Roll_No)
+	PRIMARY KEY (Roll_No),
+	
+	CHECK(CPI <= 10 AND CPI >= 0),
+	CHECK(Sem1 <= 10 AND Sem1 >= 0),
+	CHECK(Sem2 <= 10 AND Sem2 >= 0),
+	CHECK(Sem3 <= 10 AND Sem3 >= 0),
+	CHECK(Sem4 <= 10 AND Sem4 >= 0),
+	CHECK(Sem5 <= 10 AND Sem5 >= 0),
+	CHECK(Sem6 <= 10 AND Sem6 >= 0),
+	CHECK(Sem7 <= 10 AND Sem7 >= 0),
+	CHECK(Sem8 <= 10 AND Sem8 >= 0),
+	CHECK((Sem9 IS NULL) OR (Sem9 <= 10 AND Sem9 >= 0))
 );
 
 
@@ -205,14 +244,20 @@ CREATE TABLE Company(
 	Website_URL VARCHAR(50) UNIQUE NOT NULL,
 	Company_email VARCHAR(50) UNIQUE NOT NULL,
 	Company_Description VARCHAR(500),
-	Priority INT
+	Priority INT,
+	
+	CHECK(Company_email ~ '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
+	--Check Website URL in PHP
 );
 
 CREATE TABLE Comapny_Contact(
 	Company_Id INT REFERENCES Company(Company_Id) ON DELETE CASCADE ON UPDATE CASCADE,
 	Country_Code SMALLINT REFERENCES Country(Country_Code) ON DELETE CASCADE ON UPDATE CASCADE,
 	Telephone VARCHAR(20),
-	PRIMARY KEY (Company_Id, Country_Code, Telephone)
+
+	PRIMARY KEY (Company_Id, Country_Code, Telephone),
+	
+	CHECK(Telephone ~ '^[\d]+$')
 );
 
 CREATE TABLE Point_of_Contact(
@@ -231,10 +276,12 @@ CREATE TABLE Point_of_Contact(
 --
 ---------------------------------------------------------------------------
 
-CREATE TABLE Denomination(
-	Denomination_Type CHAR(10) PRIMARY KEY,
-	Denomination_conversion_factor VARCHAR(50) NOT NULL
-);
+-- Not Required: Convvertion done in PHP
+--CREATE TABLE Denomination(
+--	Denomination_Type CHAR(10) PRIMARY KEY,
+--	Denomination_conversion_factor VARCHAR(50) NOT NULL
+--	CHECK(Telephone ~ '^[\d]+$')
+--);
 
 CREATE TABLE Position(
 	Position_Id INT PRIMARY KEY,
@@ -248,10 +295,14 @@ CREATE TABLE Position(
 	Number_of_offers INT NOT NULL DEFAULT 1,
 	Bond_time INTERVAL NOT NULL DEFAULT '0',
 	Accomodation_time INTERVAL NOT NULL DEFAULT '0' ,
-	Ctc_Value NUMERIC(19,4) NOT NULL,
-	Denomination_Type CHAR(10) NOT NULL REFERENCES Denomination(Denomination_Type),
+	Ctc_Value NUMERIC(19,4) NOT NULL, -- Convertion to INR to be done in PHP
+	-- Denomination_Type CHAR(10) NOT NULL REFERENCES Denomination(Denomination_Type),
 	
-	Company_Id INT NOT NULL REFERENCES Company(Company_Id) ON DELETE CASCADE ON UPDATE CASCADE
+	Company_Id INT NOT NULL REFERENCES Company(Company_Id) ON DELETE CASCADE ON UPDATE CASCADE,
+	
+	CHECK(Min_CPI <= 10 AND Min_CPI >= 0),
+	CHECK(Min_X <= 100 AND Min_X >= 0),
+	CHECK(Min_XII <= 100 AND Min_XII >= 0)
 );
 
 
@@ -275,7 +326,8 @@ CREATE TABLE Room_Incharge_Contact(
 	Incharge_Id INT REFERENCES Room_Incharge(Incharge_Id),
 	Country_Code SMALLINT REFERENCES Country(Country_Code),
 	Telephone VARCHAR(20) NOT NULL,
-	PRIMARY KEY (Incharge_Id, Country_Code, Telephone)
+	PRIMARY KEY (Incharge_Id, Country_Code, Telephone),
+	CHECK(Telephone ~ '^[\d]+$')
 );
 
 
@@ -338,15 +390,16 @@ CREATE TABLE Position_For(
 --
 ---------------------------------------------------------------------------
 
---CREATE TYPE _ROUND_ AS ENUM ('GD' , 'Written Test', 'Programming Test', 'Round1');
+CREATE TYPE _ROUND_ AS ENUM ('GD' , 'Written Test', 'Programming Test', 'Interview');
 
 CREATE TABLE Schedule(
 	Position_Id INT REFERENCES Position(Position_Id) ON DELETE CASCADE ON UPDATE CASCADE,
 	Room_No VARCHAR(10) REFERENCES Room(Room_No) ON DELETE CASCADE ON UPDATE CASCADE,
-	Round VARCHAR(10) NOT NULL,
+	Round_Number INT NOT NULL,
+	Round_Type _ROUND_ NOT NULL,
 	StartTime TIMESTAMP,
 	EndTime TIMESTAMP,
 
-	PRIMARY KEY (Position_Id, Room_No)
+	PRIMARY KEY (Position_Id, Room_No, Round_Number)
 );
 
