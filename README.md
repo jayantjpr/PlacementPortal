@@ -16,18 +16,18 @@ The Timeline & various phases of the project are as follows :-
 3. III Milestone
     * Topics : Creating Interface for data insertion, deletion, search and update, reviewing the design.
     * Soft-Deadline : 25-3-2013
-    * Status : Ongoing
+    * Status : Complete
 4. IV Milestone
     * Topics : Report generation, Testing the design constraints. Applying query optimization, indexing and normalization.
     * Soft-Deadline : 1-4-2013
-    * Status : Yet-to-begin
+    * Status : Complete
 5. V Milestone
     * Topics : Final development process.
     * Soft-Deadline : 8-4-2013
-    * Status : Yet-to-begin
+    * Status : Complete
 6. VI Milestone
     * Topics : Final evaluation of the project (any recommendation made on 8/4/2013 should be incorporated before presenting for the evaluation).
     * Hard-Deadline : 15-4-2013
-    * Status : Yet-to-begin
+    * Status : Complete
 
 As per the convenience of the other team members, colaboration is being done using Google+ and real-time colaborative editing etc. is being done using Google Drive.
